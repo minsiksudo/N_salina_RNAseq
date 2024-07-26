@@ -14,6 +14,7 @@ ANNOTATED_DIR="annotated_reads"
 REFERENCE_GENOME="ref_genome/GCA_004565275.1/ncbi_dataset/data/GCA_004565275.1/GCA_004565275.1_ASM456527v1_genomic.fna"
 REFERENCE_ANNOTATION="ref_genome/GCA_004565275.1/ncbi_dataset/data/GCA_004565275.1/genomic.gff"
 REFERENCE_GENES="ref_genome/GCA_004565275.1/ncbi_dataset/data/GCA_004565275.1/cds_from_genomic.fna"
+ADAPTER_FILE="adapters/TruSeq3-PE.fa" # Adjust this path
 SUMMARY_FILE="results/read_counts_summary.csv"
 NUM_THREADS=40  # Number of threads to use
 
@@ -40,7 +41,7 @@ for READ1 in ${RAW_READS_DIR}/*_1.fq.gz; do
   trimmomatic PE -threads ${NUM_THREADS} ${READ1} ${READ2} \
     ${FILTERED_DIR}/${BASENAME}_1_paired.fq.gz ${FILTERED_DIR}/${BASENAME}_1_unpaired.fq.gz \
     ${FILTERED_DIR}/${BASENAME}_2_paired.fq.gz ${FILTERED_DIR}/${BASENAME}_2_unpaired.fq.gz \
-    ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:36
+    ILLUMINACLIP:${ADAPTER_FILE}:2:30:10 SLIDINGWINDOW:4:20 MINLEN:36
   
   # Counting the high-quality reads
   HIGH_QUALITY_READS=$(zcat ${FILTERED_DIR}/${BASENAME}_1_paired.fq.gz | echo $((`wc -l`/4)))
