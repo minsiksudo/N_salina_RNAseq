@@ -1,4 +1,6 @@
-**Materials and Methods for a collaborative work with Prof. Nam Kyu Kang at KHU**
+**QCing, mapping, and annotating RNAs of** ***Nannochloropsis salina*** **CCMP1776** were conducted for a collaborative work with **Prof. Nam Kyu Kang at KHU**. Plus, Minsik's lab is encharge of statistical analyses to find out how the microalgal pathways expressed differently based on different culture condition, in a longitudinal study. 
+
+**Materials and Methods**
 
 *Quality Control and Preprocessing*
 
@@ -8,11 +10,11 @@ The quality of raw RNA-seq reads was assessed using FastQC v0.11.9 (Andrews, 201
 
 Statistical Analysis
 
-…
+…TBA
 
 Data Availability
 
-The raw sequencing data and processed files are available in the NCBI Sequence Read Archive under the accession number [SRA OOOOOOO; PRJN OOOOOOO]. Scripts used for the analysis are available at [Specify repository link].
+The raw sequencing data and processed files are available in the NCBI Sequence Read Archive under the accession number [SRA OOOOOOO (TBA); PRJN OOOOOOO (TBA)]. Scripts used for the analysis are available at [https://github.com/minsiksudo/N_salina_RNAseq].
 
 References:
 
