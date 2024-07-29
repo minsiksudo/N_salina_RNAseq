@@ -1,4 +1,4 @@
-**QCing, mapping, and annotating RNAs of** ***Nannochloropsis salina*** **CCMP1776** were conducted for a collaborative work with **Prof. Nam Kyu Kang at KHU**. Plus, Minsik's lab is encharge of statistical analyses to find out how the microalgal pathways expressed differently based on different culture condition, in a longitudinal study. 
+**QCing, mapping, and annotating RNAs of** ***Nannochloropsis salina*** **CCMP1776** were conducted for a collaborative work with **Prof. Nam Kyu Kang at KHU**. Plus, Minsik's lab is encharge of statistical analyses to find out how the microalgal pathways expressed differently based on different culture conditions, by time. 
 
 **Materials and Methods**
 
