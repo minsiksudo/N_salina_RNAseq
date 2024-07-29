@@ -2,9 +2,9 @@
 
 **Materials and Methods**
 
-*Quality Control and Preprocessing*
+*Quality control and data reprocessing*
 
-Quality control, trimming and filtering, alignment, annotation and quantification
+Quality control, trimming, alignment, filtering, annotation and quantification
 
 The quality of raw RNA-seq reads was assessed using FastQC v0.11.9 (Andrews, 2010). Reads were evaluated for various quality metrics including per base sequence quality, GC content, and adapter contamination. Low-quality reads and adapter sequences were removed using Trimmomatic v0.39 (Bolger et al., 2014). The following parameters were used: ILLUMINACLIP:TruSeq3-PE.fa:2:30:10, SLIDINGWINDOW:4:20, and MINLEN:36. High-quality paired-end reads were retained for downstream analysis. The Nannochloropsis salina CCMP1776 reference genome (GCA_004565275.1) and corresponding annotation files were obtained from the NCBI database. The genome was indexed using HISAT2 v2.2.1 (Kim et al., 2015). High-quality reads were aligned to the reference genome using HISAT2 with the following parameters: -p 48 for 48 threads, ensuring efficient utilization of computational resources. Aligned reads were converted to BAM format, sorted, and indexed using Samtools v1.10 (Li et al., 2009). Gene-level read counts were generated using featureCounts v2.0.1 (Liao et al., 2014) with the reference annotation file. The parameters -T 48 were used to specify the number of threads. Functional annotation of the gene models was performed using eggNOG-mapper v2 (Huerta-Cepas et al., 2017). Annotated reads were then quantified, and the proportion of contaminants was determined based on the alignment statistics.
 
