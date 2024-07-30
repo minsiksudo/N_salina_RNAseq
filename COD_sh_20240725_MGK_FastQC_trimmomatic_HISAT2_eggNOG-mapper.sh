@@ -40,6 +40,17 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Run featureCounts
+
+echo "Running fetureCounts..."
+./COD_sh_20240730_MGK_06_featurecounts.sh
+if [ $? -ne 0 ]; then
+    echo "Error in featureCount step"
+    exit 1
+fi
+
+
+
 # Generate Summary
 echo "Generating Summary..."
 ./COD_sh_20240726_MGK_06_summary.sh
