@@ -33,12 +33,12 @@
 #fi
 
 # Run EggNOG-mapper
-echo "Running EggNOG-mapper..."
-./COD_sh_20240726_MGK_05_eggnog_mapper.sh
-if [ $? -ne 0 ]; then
-    echo "Error in EggNOG-mapper step"
-    exit 1
-fi
+#echo "Running EggNOG-mapper..."
+#./COD_sh_20240726_MGK_05_eggnog_mapper.sh
+#if [ $? -ne 0 ]; then
+#    echo "Error in EggNOG-mapper step"
+#    exit 1
+#fi
 
 # Run featureCounts
 

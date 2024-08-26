@@ -2,19 +2,52 @@
 
 # Define directories
 FILTERED_DIR="filtered_reads"
-COUNTS_DIR="counts"
+FASTA_DIR="fasta_reads"
+ANNOTATED_DIR="annotated_reads"
 
-# Path to annotation file
-ANNOTATION_FILE="/path/to/annotation.gtf"
+# Path to custom EggNOG database directory
+EGGNOG_DB_DIR="/mnt/4T_samsung/Dropbox/Sequencing_archive/eggnog_db"
 
 # Define the number of threads
 THREADS=40
 
-# Create directory if it doesn't exist
-mkdir -p $COUNTS_DIR
+# Create directories if they don't exist
+mkdir -p $FASTA_DIR
+mkdir -p $ANNOTATED_DIR
 
-# Generate count tables for each BAM file
+# Create a list of already annotated files (without extensions)
+ls $ANNOTATED_DIR/*.emapper.annotations | sed 's/\.[^.]*$//' | xargs -n 1 basename > annotated_files.txt
+
+# Activate the eggNOG-mapper environment
+source /home/bagel/miniconda3/etc/profile.d/conda.sh
+conda activate eggnog_mapper_env
+
+# Convert BAM files to FASTA format
 for file in $FILTERED_DIR/*.bam; do
     BASENAME=$(basename $file .bam)
-    featureCounts -a $ANNOTATION_FILE -o ${COUNTS_DIR}/${BASENAME}_counts.txt -t exon -g gene_id -T $THREADS $file
+    FASTA_FILE="${FASTA_DIR}/${BASENAME}.fasta"
+    
+    # Convert BAM to FASTA if not already in FASTA directory
+    if [ ! -f $FASTA_FILE ]; then
+        samtools fasta $file > $FASTA_FILE
+    fi
 done
+
+# Run EggNOG-mapper with the custom database path
+for file in $FASTA_DIR/*.fasta; do
+    BASENAME=$(basename $file .fasta)
+
+    # Skip files that have already been annotated
+    if ! grep -q "^$BASENAME$" annotated_files.txt; then
+        emapper.py --cpu $THREADS --output ${ANNOTATED_DIR}/${BASENAME} --data_dir "$EGGNOG_DB_DIR" -i $file --override --translate -m diamond
+    else
+        echo "$BASENAME has already been annotated. Skipping..."
+    fi
+done
+
+# Clean up intermediate FASTA files after annotation
+echo "Cleaning up intermediate FASTA files..."
+rm -f ${FASTA_DIR}/*.fasta
+
+# Deactivate the eggNOG-mapper environment
+conda deactivate
