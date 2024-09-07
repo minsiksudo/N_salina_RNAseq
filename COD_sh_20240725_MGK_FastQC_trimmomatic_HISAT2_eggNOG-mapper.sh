@@ -42,8 +42,16 @@
 
 # Run featureCounts
 
-echo "Running fetureCounts..."
-./COD_sh_20240730_MGK_06_featurecounts.sh
+echo "Running fetureCounts using Los Alamos data..."
+./COD_sh_20240908_MGK_06_1_featurecounts.sh
+if [ $? -ne 0 ]; then
+    echo "Error in featureCount step"
+    exit 1
+fi
+
+
+echo "Running fetureCounts using eggNog data..."
+./COD_sh_20240908_MGK_06_2_featurecounts.sh
 if [ $? -ne 0 ]; then
     echo "Error in featureCount step"
     exit 1
@@ -51,9 +59,10 @@ fi
 
 
 
+
 # Generate Summary
 echo "Generating Summary..."
-./COD_sh_20240726_MGK_06_summary.sh
+./COD_sh_20240726_MGK_07_summary.sh
 if [ $? -ne 0 ]; then
     echo "Error in Summary generation step"
     exit 1

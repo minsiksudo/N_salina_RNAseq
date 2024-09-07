@@ -29,15 +29,16 @@ for file in $RAW_READS_DIR/*_1.fq.gz; do
         echo "Filtered BAM file ${FILTERED_DIR}/${BASENAME}_filtered.bam not found."
         continue
     fi
-    if [ ! -f ${ANNOTATED_DIR}/${BASENAME}_annotation.emapper.annotations ]; then
-        echo "Annotation file ${ANNOTATED_DIR}/${BASENAME}_annotation.emapper.annotations not found."
+    if [ ! -f ${ANNOTATED_DIR}/${BASENAME}_aligned_filtered.emapper.annotations ]; then
+        echo "Annotation file ${ANNOTATED_DIR}/${BASENAME}_aligned_filtered.emapper.annotations not found."
         continue
     fi
 
+    # Calculate read counts
     RAW_READS=$(($(zcat ${RAW_READS_DIR}/${BASENAME}_1.fq.gz | wc -l) / 4))
     HQ_READS=$(($(zcat ${FILTERED_DIR}/${BASENAME}_1_paired.fq.gz | wc -l) / 4))
     ALIGN_READS=$(samtools view -c ${FILTERED_DIR}/${BASENAME}_filtered.bam)
-    ANNOT_READS=$(grep -c ">" ${ANNOTATED_DIR}/${BASENAME}_annotation.emapper.annotations)
+    ANNOT_READS=$(grep -c ">" ${ANNOTATED_DIR}/${BASENAME}_aligned_filtered.emapper.annotations)
     
     if [ $RAW_READS -eq 0 ]; then
         PROP_CONTAM="N/A"
@@ -47,5 +48,6 @@ for file in $RAW_READS_DIR/*_1.fq.gz; do
         PROP_ANNOT=$(echo "scale=2; $ANNOT_READS / $RAW_READS * 100" | bc)
     fi
     
+    # Append to summary file
     echo "$BASENAME,$RAW_READS,$HQ_READS,$ALIGN_READS,$ANNOT_READS,$PROP_CONTAM,$PROP_ANNOT" >> $SUMMARY_FILE
 done
