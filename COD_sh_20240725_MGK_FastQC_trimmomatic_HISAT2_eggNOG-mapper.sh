@@ -43,7 +43,7 @@
 # Run featureCounts
 
 echo "Running fetureCounts using Los Alamos data..."
-./COD_sh_20240908_MGK_06_1_featurecounts.sh
+./COD_sh_20240908_MGK_06_1_sort_and_bam_and_count.sh
 if [ $? -ne 0 ]; then
     echo "Error in featureCount step"
     exit 1
