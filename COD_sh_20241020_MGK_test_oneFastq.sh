@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the sample to test with (replace 'test_sample' with your sample name)
-TEST_SAMPLE="test_sample"
+TEST_SAMPLE="TN1511R0955--CCGTCCCG"
 
 # Define directories
 RAW_READS_DIR="Nannochloropsis_20eax4_RNAseq"
