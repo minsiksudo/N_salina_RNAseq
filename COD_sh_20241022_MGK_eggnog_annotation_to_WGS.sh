@@ -15,6 +15,8 @@ OUTPUT_PREFIX="nannochloropsis_annotation" # Output prefix for EggNOG-mapper
 # EggNOG-mapper command
 echo "Running EggNOG-mapper on ${PROTEIN_FILE} with ${THREADS} threads..."
 
+conda activate eggnog_mapper_env
+
 emapper.py -i ${PROTEIN_FILE} \
            --output ${OUTPUT_PREFIX} \
            --cpu ${THREADS} \
@@ -31,6 +33,8 @@ else
     echo "EggNOG-mapper encountered an error."
     exit 1
 fi
+
+conda deactivate
 
 # Check the output files
 echo "Annotation results saved in: ./eggnog_output/${OUTPUT_PREFIX}.emapper.annotations"
