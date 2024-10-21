@@ -15,8 +15,9 @@ OUTPUT_PREFIX="nannochloropsis_annotation" # Output prefix for EggNOG-mapper
 # EggNOG-mapper command
 echo "Running EggNOG-mapper on ${PROTEIN_FILE} with ${THREADS} threads..."
 
-conda init
-conda activate eggnog_mapper_env
+	source /home/bagel/miniconda3/etc/profile.d/conda.sh
+	conda init
+	conda activate eggnog_mapper_env
 
 emapper.py -i ${PROTEIN_FILE} \
            --output ${OUTPUT_PREFIX} \
