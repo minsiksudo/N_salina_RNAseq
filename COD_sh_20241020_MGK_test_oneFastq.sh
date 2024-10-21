@@ -1,96 +1,130 @@
 #!/bin/bash
 
-# Define the sample to test with (replace 'test_sample' with your sample name)
-TEST_SAMPLE="TN1511R0955--CCGTCCCG"
+# Define the test sample (change this to the sample you want to test)
+TEST_BASENAME="TN1506R0382"
 
 # Define directories
 RAW_READS_DIR="Nannochloropsis_20eax4_RNAseq"
 FILTERED_DIR="filtered_reads"
 ALIGN_DIR="aligned_reads"
-ANNOTATED_DIR="annotated_reads"
-QC_DIR="QC_results"
 COUNTS_DIR="counts"
-FASTA_DIR="fasta_reads"
+QC_DIR="QC_results"
+ADAPTERS_DIR="adapters"
+REF_GENOME="ref_genome/GCA_004565275.1/ncbi_dataset/data/GCA_004565275.1/GCA_004565275.1_ASM456527v1_genomic.fna"
+HISAT2_INDEX="hisat2_index/nannochloropsis_salina"
+GTF_FILE="ref_genome/GCA_004565275.1/ncbi_dataset/data/GCA_004565275.1/genomic.gtf"
+SUMMARY_FILE="results/read_counts_summary_test.csv"  # Define a test summary file for one sample
+THREADS=40
+JAVA_HEAP_SIZE="-Xms16g -Xmx64g"
 
-# Create necessary directories if they don't exist
-mkdir -p $FILTERED_DIR $ALIGN_DIR $ANNOTATED_DIR $QC_DIR $COUNTS_DIR $FASTA_DIR
+# Create necessary output directories if they don't exist
+mkdir -p $QC_DIR $FILTERED_DIR $ALIGN_DIR $COUNTS_DIR results
 
-# Check if the necessary environments are installed and activated
-echo "Checking conda environments..."
+# Initialize summary file if it doesn't exist
+if [ ! -f "$SUMMARY_FILE" ]; then
+    echo "sample,raw_reads,high_quality_reads,forward_unpaired_reads,reverse_unpaired_reads,mapped_reads,assigned_reads" > "$SUMMARY_FILE"
+fi
 
-# FastQC step
-echo "Running FastQC on $TEST_SAMPLE..."
+echo "Processing test sample $TEST_BASENAME..."
+
+# Step 1: Run FastQC
+echo "Running FastQC for $TEST_BASENAME..."
 source /home/bagel/miniconda3/etc/profile.d/conda.sh
 conda activate fastqc_env
-fastqc -o $QC_DIR ${RAW_READS_DIR}/${TEST_SAMPLE}_1.fq.gz ${RAW_READS_DIR}/${TEST_SAMPLE}_2.fq.gz
-if [ $? -ne 0 ]; then
-    echo "FastQC step failed"
-    exit 1
-fi
+fastqc -o $QC_DIR $RAW_READS_DIR/${TEST_BASENAME}_1.fq.gz $RAW_READS_DIR/${TEST_BASENAME}_2.fq.gz
 conda deactivate
 
-# Trimmomatic step
-echo "Running Trimmomatic on $TEST_SAMPLE..."
+if [ $? -ne 0 ]; then
+    echo "Error in FastQC step for $TEST_BASENAME"
+    exit 1
+fi
+
+# Step 2: Run Trimmomatic
+echo "Running Trimmomatic for $TEST_BASENAME..."
 conda activate trimmomatic_env
-java -Xms16g -Xmx64g -jar /home/bagel/miniconda3/envs/trimmomatic_env/share/trimmomatic-0.39-2/trimmomatic.jar PE \
-    ${RAW_READS_DIR}/${TEST_SAMPLE}_1.fq.gz ${RAW_READS_DIR}/${TEST_SAMPLE}_2.fq.gz \
-    ${FILTERED_DIR}/${TEST_SAMPLE}_1_paired.fq.gz ${FILTERED_DIR}/${TEST_SAMPLE}_1_unpaired.fq.gz \
-    ${FILTERED_DIR}/${TEST_SAMPLE}_2_paired.fq.gz ${FILTERED_DIR}/${TEST_SAMPLE}_2_unpaired.fq.gz \
-    ILLUMINACLIP:adapters/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:36
-if [ $? -ne 0 ]; then
-    echo "Trimmomatic step failed"
-    exit 1
-fi
+java $JAVA_HEAP_SIZE -jar /home/bagel/miniconda3/envs/trimmomatic_env/share/trimmomatic-0.39-2/trimmomatic.jar PE -threads $THREADS \
+    ${RAW_READS_DIR}/${TEST_BASENAME}_1.fq.gz ${RAW_READS_DIR}/${TEST_BASENAME}_2.fq.gz \
+    ${FILTERED_DIR}/${TEST_BASENAME}_1_paired.fq.gz ${FILTERED_DIR}/${TEST_BASENAME}_1_unpaired.fq.gz \
+    ${FILTERED_DIR}/${TEST_BASENAME}_2_paired.fq.gz ${FILTERED_DIR}/${TEST_BASENAME}_2_unpaired.fq.gz \
+    ILLUMINACLIP:${ADAPTERS_DIR}/TruSeq3-PE.fa:2:30:10 SLIDINGWINDOW:4:20 MINLEN:36
 conda deactivate
 
-# HISAT2 step
-echo "Running HISAT2 on $TEST_SAMPLE..."
+if [ $? -ne 0 ]; then
+    echo "Error in Trimmomatic step for $TEST_BASENAME"
+    exit 1
+fi
+
+# Step 3: Run HISAT2
+echo "Running HISAT2 for $TEST_BASENAME..."
 conda activate hisat2_env
-hisat2 -p 20 -x hisat2_index/nannochloropsis_salina -1 ${FILTERED_DIR}/${TEST_SAMPLE}_1_paired.fq.gz -2 ${FILTERED_DIR}/${TEST_SAMPLE}_2_paired.fq.gz -S ${ALIGN_DIR}/${TEST_SAMPLE}_aligned.sam
-if [ $? -ne 0 ]; then
-    echo "HISAT2 step failed"
-    exit 1
-fi
+hisat2 -p $THREADS -x $HISAT2_INDEX \
+    -1 ${FILTERED_DIR}/${TEST_BASENAME}_1_paired.fq.gz \
+    -2 ${FILTERED_DIR}/${TEST_BASENAME}_2_paired.fq.gz \
+    -S ${ALIGN_DIR}/${TEST_BASENAME}_aligned.sam
 conda deactivate
 
-# Samtools filtering step
-echo "Running Samtools filtering on $TEST_SAMPLE..."
+if [ $? -ne 0 ]; then
+    echo "Error in HISAT2 step for $TEST_BASENAME"
+    exit 1
+fi
+
+# Step 4: Run Samtools Filtering, Sorting, and Indexing
+echo "Running Samtools for $TEST_BASENAME..."
+source /home/bagel/miniconda3/etc/profile.d/conda.sh
 conda activate samtools_env
-samtools view -@ 40 -bS ${ALIGN_DIR}/${TEST_SAMPLE}_aligned.sam | samtools sort -@ 40 -m 8G -o ${FILTERED_DIR}/${TEST_SAMPLE}_sorted.bam
-if [ $? -ne 0 ]; then
-    echo "Samtools sort failed"
+
+# Convert SAM to BAM, sort, and index
+samtools view -@ $THREADS -bS ${ALIGN_DIR}/${TEST_BASENAME}_aligned.sam | \
+samtools sort -@ $THREADS -o ${FILTERED_DIR}/${TEST_BASENAME}_sorted.bam
+samtools index ${FILTERED_DIR}/${TEST_BASENAME}_sorted.bam
+
+# Run Samtools flagstat to get alignment stats
+echo "Generating alignment stats with Samtools flagstat for $TEST_BASENAME..."
+SAMTOOLS_FLAGSTAT="${FILTERED_DIR}/${TEST_BASENAME}_flagstat.txt"
+samtools flagstat ${FILTERED_DIR}/${TEST_BASENAME}_sorted.bam > $SAMTOOLS_FLAGSTAT
+
+if [ ! -f "$SAMTOOLS_FLAGSTAT" ]; then
+    echo "Error: Samtools flagstat file not found!"
     exit 1
 fi
-samtools index ${FILTERED_DIR}/${TEST_SAMPLE}_sorted.bam
+
+conda deactivate
+
+# Step 5: Run featureCounts
+echo "Running featureCounts for $TEST_BASENAME..."
+source /home/bagel/miniconda3/etc/profile.d/conda.sh
+conda activate subread_env
+featureCounts -T $THREADS -p -a $GTF_FILE -o ${COUNTS_DIR}/${TEST_BASENAME}_counts.txt ${FILTERED_DIR}/${TEST_BASENAME}_sorted.bam
+
 if [ $? -ne 0 ]; then
-    echo "Samtools index failed"
-    exit 1
-fi
-samtools view -@ 40 -b -q 20 ${FILTERED_DIR}/${TEST_SAMPLE}_sorted.bam > ${FILTERED_DIR}/${TEST_SAMPLE}_filtered.bam
-if [ $? -ne 0 ]; then
-    echo "Samtools filtering failed"
-    exit 1
-fi
-samtools index ${FILTERED_DIR}/${TEST_SAMPLE}_filtered.bam
-if [ $? -ne 0 ]; then
-    echo "Samtools filtering failed"
+    echo "Error in featureCounts step for $TEST_BASENAME"
     exit 1
 fi
 conda deactivate
 
-# EggNOG-mapper step
-echo "Running EggNOG-mapper on $TEST_SAMPLE..."
-conda activate eggnog_mapper_env
-samtools fasta ${FILTERED_DIR}/${TEST_SAMPLE}_filtered.bam > ${FASTA_DIR}/${TEST_SAMPLE}.fasta
-if [ $? -ne 0 ]; then
-    echo "Conversion to FASTA failed"
-    exit 1
-fi
-emapper.py --cpu 40 --output ${ANNOTATED_DIR}/${TEST_SAMPLE} --data_dir /mnt/4T_samsung/Dropbox/Sequencing_archive/eggnog_db -i ${FASTA_DIR}/${TEST_SAMPLE}.fasta --override --translate -m diamond
-if [ $? -ne 0 ]; then
-    echo "EggNOG-mapper step failed"
-    exit 1
-fi
-conda deactivate
+# Step 6: Generate summary statistics
+echo "Generating summary for $TEST_BASENAME..."
 
-echo "Test pipeline for $TEST_SAMPLE completed successfully!"
+# Count raw reads
+RAW_READS=$(( ($(zcat ${RAW_READS_DIR}/${TEST_BASENAME}_1.fq.gz | wc -l) + $(zcat ${RAW_READS_DIR}/${TEST_BASENAME}_2.fq.gz | wc -l)) / 4 ))
+
+# Count high-quality reads (after Trimmomatic)
+HQ_READS=$(( ($(zcat ${FILTERED_DIR}/${TEST_BASENAME}_1_paired.fq.gz | wc -l) + $(zcat ${FILTERED_DIR}/${TEST_BASENAME}_2_paired.fq.gz | wc -l)) / 4 ))
+
+# Extract forward-only and reverse-only unpaired reads from Trimmomatic output
+FORWARD_ONLY_UNPAIRED=$(( $(zcat ${FILTERED_DIR}/${TEST_BASENAME}_1_unpaired.fq.gz | wc -l) / 4 ))
+REVERSE_ONLY_UNPAIRED=$(( $(zcat ${FILTERED_DIR}/${TEST_BASENAME}_2_unpaired.fq.gz | wc -l) / 4 ))
+
+# Extract mapped reads from flagstat
+MAPPED_READS=$(grep "mapped (" ${SAMTOOLS_FLAGSTAT} | head -n 1 | cut -d " " -f 1)
+
+# Extract assigned reads from featureCounts summary
+FEATURECOUNTS_SUMMARY="${COUNTS_DIR}/${TEST_BASENAME}_counts.txt.summary"
+ASSIGNED_READS=$(grep "Assigned" $FEATURECOUNTS_SUMMARY | awk '{print $2}')
+
+# Append the stats to the summary file
+echo "$TEST_BASENAME,$RAW_READS,$HQ_READS,$FORWARD_ONLY_UNPAIRED,$REVERSE_ONLY_UNPAIRED,$MAPPED_READS,$ASSIGNED_READS" >> "$SUMMARY_FILE"
+
+echo "Pipeline completed successfully for $TEST_BASENAME!"
+
+

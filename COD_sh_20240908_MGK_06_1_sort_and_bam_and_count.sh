@@ -16,7 +16,9 @@ echo "sample,raw_reads,high_quality_reads,reference_genome_aligned_reads,annotat
 # Function to process each sample
 process_sample() {
     local BASENAME=$1
-
+    
+    # Remove '_filtered' from BASENAME if it exists
+    BASENAME=$(echo "$BASENAME" | sed 's/_filtered$//')
     # Check if files exist
     if [ ! -f "${RAW_READS_DIR}/${BASENAME}_1.fq.gz" ] || [ ! -f "${RAW_READS_DIR}/${BASENAME}_2.fq.gz" ]; then
         echo "Raw reads file ${RAW_READS_DIR}/${BASENAME}_1.fq.gz or ${RAW_READS_DIR}/${BASENAME}_2.fq.gz not found."
