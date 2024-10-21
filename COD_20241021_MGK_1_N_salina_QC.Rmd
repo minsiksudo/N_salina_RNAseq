@@ -58,6 +58,7 @@ path_library <-
 
 
 str_libraries <- c("readxl", "phyloseq", "tidyverse", "pacman", "yaml",
+                   "DESeq2",
                    "ggplot2", "vegan", "microbiome","ggpubr", "viridis",
                    "decontam", "gridExtra", "ggpubr", "lme4", "lmerTest",
                    "writexl", "harrietr", "Maaslin2", "ggtext", "mgcv",
@@ -121,9 +122,35 @@ FUN.LineZero.Report()
 
 ```
 
+# Loading data
+
+```{r warning=FALSE}
+
+
+```
+
 
 EXPLORATORY DATA ANALYSIS: (DESCRIPTIVE AS BOLD)
 
+1. Assigned reads per sample
+
+2. CPM calculation
+
+3. Pathway hierarchy
+
+
+
+```{r warning=FALSE }
+# Run the DESeq2 pipeline
+dds <- DESeq(dds)
+
+# Extract results for differential expression
+res <- results(dds)
+
+# View the results
+head(res)
+
+```
 
 
 ```{r warning=FALSE }
