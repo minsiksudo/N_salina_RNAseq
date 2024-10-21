@@ -4,7 +4,7 @@
 # Purpose: Automate the process of running EggNOG-mapper and generating functional annotations for Nannochloropsis salina
 
 # Number of threads to use
-THREADS=48
+THREADS=20
 
 # Directories and input/output files
 REF_DIR="/mnt/4T_samsung/Dropbox/Sequencing_archive/2024_01_02_KNK_NSalina/ref_genome/GCA_004565275.1/ncbi_dataset/data/GCA_004565275.1"
