@@ -24,11 +24,9 @@ emapper.py -i ${PROTEIN_FILE} \
            --cpu ${THREADS} \
            --data_dir ${EGGNOG_DB_DIR} \
            --dmnd_db ${EGGNOG_DB_DIR}/eggnog_proteins.dmnd \
-           --itype proteins \
-           --go_evidence experimental \  # Choose either 'experimental' or 'non-electronic'
+           --go_evidence experimental \
            --tax_scope auto \
            --output_dir ./eggnog_output
-
 
 if [ $? -eq 0 ]; then
     echo "EggNOG-mapper completed successfully."
