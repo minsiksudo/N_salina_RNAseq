@@ -27,7 +27,7 @@ emapper.py -i ${PROTEIN_FILE} \
            --dmnd_db ${EGGNOG_DB_DIR}/eggnog_proteins.dmnd \
            --go_evidence experimental \
            --tax_scope auto \
-           --decorate_gff /mnt/4T_samsung/Dropbox/Sequencing_archive/2024_01_02_KNK_NSalina/ref_genome/GCA_004565275.1/ncbi_dataset/data/GCA_004565275.1/genomic_eggnog.gtf \
+           --decorate_gff /mnt/4T_samsung/Dropbox/Sequencing_archive/2024_01_02_KNK_NSalina/ref_genome/GCA_004565275.1/ncbi_dataset/data/GCA_004565275.1/genomic_eggnog.gff \
 	   --override \
            --output_dir ./eggnog_output
 
